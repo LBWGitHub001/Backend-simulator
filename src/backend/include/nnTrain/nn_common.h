@@ -23,8 +23,8 @@ namespace nn
     struct Label
     {
         double w;
-        double vx,vy,vz;
-        double r1,r2;
+        double vx, vy, vz;
+        double r1, r2;
     };
 
 
@@ -41,7 +41,20 @@ namespace nn
         std::vector<Label> labels;
         std::vector<double> predict_step;
     };
-    using lazyDataSet__id = std::map<int,lazyDataSet__struct>;
-    using lazyDataSet = std::map<std::string,lazyDataSet__id>;
+
+    using lazyDataSet__id = std::map<int, lazyDataSet__struct>;
+    using lazyDataSet = std::map<std::string, lazyDataSet__id>;
+
+    inline Label interface_to_nnType(interfaces::msg::Label label)
+    {
+        Label label_;
+        label_.vx = label.vx;
+        label_.vy = label.vy;
+        label_.vz = label.vz;
+        label_.w = label.w;
+        label_.r1 = label.r1;
+        label_.r2 = label.r2;
+        return label_;
+    }
 }
 #endif //NN_COMMON_H

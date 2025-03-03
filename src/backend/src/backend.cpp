@@ -63,12 +63,14 @@ void BackEnd::initMemory()
     param.episodes = 3000;
     param.stepstamps = 1000;
     param.lr = 0.003;
+    param.time_step = 10;
     memory_ = std::make_unique<Memory>(param);
 }
 
 void BackEnd::armors_callback(const Armors::SharedPtr msg)
 {
     armors_ = *msg;
+    memory_->push(armors_);
 }
 
 void BackEnd::predict_timer_callback()
@@ -110,7 +112,7 @@ void BackEnd::predict_timer_callback()
 
         esl_markers.markers.push_back(realArmor);
     }
-RCLCPP_INFO(this->get_logger(), "Num of visible Armor is %lu",esl_markers.markers.size());
+// RCLCPP_INFO(this->get_logger(), "Num of visible Armor is %lu",esl_markers.markers.size());
     esl_markers_pub_->publish(esl_markers);
 }
 

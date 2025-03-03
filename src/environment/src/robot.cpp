@@ -161,6 +161,12 @@ robot::RobotMarkers Robot::getState(const rclcpp::Time& time,bool iter)
             is_once = true;
         }
     }
+    robot_markers.label.vx = robot_state_.v_x;
+    robot_markers.label.vy = robot_state_.v_y;
+    robot_markers.label.vz = robot_state_.v_z;
+    robot_markers.label.w = robot_state_.w;
+    robot_markers.label.r1 = robot_state_.r;
+    robot_markers.label.r2 = robot_state_.r;
     return robot_markers;
 }
 

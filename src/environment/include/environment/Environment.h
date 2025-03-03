@@ -18,6 +18,7 @@
 #include "robot/robot.h"
 #include "interfaces/msg/armor.hpp"
 #include "interfaces/msg/armors.hpp"
+#include "interfaces/msg/label.hpp"
 
 class Environment :
     public rclcpp::Node

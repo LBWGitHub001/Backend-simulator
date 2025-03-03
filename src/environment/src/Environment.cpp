@@ -172,6 +172,7 @@ void Environment::publish_markers()
             armor_to_pub.pose = armor.armor.pose;
             armor_to_pub.id = armor.armor.id;
             armor_to_pub.next_pose = nextRobotState.armors[i].armor.pose;
+            armor_to_pub.label = robotState.label;
 
             armors_to_pub.armors.push_back(armor_to_pub);
         }

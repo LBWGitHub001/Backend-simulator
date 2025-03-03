@@ -9,6 +9,7 @@
 #include <visualization_msgs/msg/marker.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
 #include "robot/rob_common.h"
+#include "interfaces/msg/label.hpp"
 
 class Robot
 {

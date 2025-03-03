@@ -13,6 +13,7 @@
 
 #include "nnTrain/nn_common.h"
 #include "nnTrain/train_base.h"
+#include "interfaces/msg/label.hpp"
 
 class Memory
 {
@@ -30,7 +31,7 @@ public:
 
   void initBuff();
   void registerTrainer(std::unique_ptr<TrainBase> trainer);
-  void push(interfaces::msg::Armors armor,nn::Label label);
+  void push(interfaces::msg::Armors armors);
 
 private:
   // State

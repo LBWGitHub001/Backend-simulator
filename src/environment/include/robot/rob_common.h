@@ -9,6 +9,7 @@
 #include <visualization_msgs/msg/marker.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
 #include <map>
+#include "interfaces/msg/label.hpp"
 
 namespace robot
 {
@@ -34,6 +35,7 @@ namespace robot
     visualization_msgs::msg::MarkerArray markers;
     std::vector<Armor> armors;
     visualization_msgs::msg::Marker center;
+    interfaces::msg::Label label;
   };
 
 }
