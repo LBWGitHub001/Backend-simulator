@@ -37,7 +37,7 @@ struct Preset
     void setVelocity(float vx, float vy, float vz);
     void setW(float w);
     void setR(float r);
-    void start();
+    void start() const;
 
     RobotMarkers getState(const rclcpp::Time& time);
 

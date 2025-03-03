@@ -8,6 +8,7 @@ Environment::Environment(): rclcpp::Node("Environment")
 {
     self_markers_pub_ = this->create_publisher<MarkerArray>("environment/self", 10);
     robot_markers_pub_ = this->create_publisher<MarkerArray>("environment/robot", 10);
+    armors_pub_ = this->create_publisher<Armors>("environment/armors", 10);
 
     marker_timer_ = this->create_wall_timer(std::chrono::milliseconds(10),
                                             std::bind(&Environment::publish_markers, this));
@@ -26,7 +27,7 @@ void Environment::init()
 {
     int width = this->declare_parameter("site/width", 1);
     int length = this->declare_parameter("site/length", 1);
-    site_param_ = {.width = width, .length = length};
+    site_param_ = {width, length};
     sight_dir_ = std::make_shared<Robot::DirVector>();
     *sight_dir_ << 1, 0, 0;
     initMarkers();
@@ -103,7 +104,7 @@ std::unique_ptr<Robot> Environment::initRobot(float x, float y, float z, float r
     robot->setSight(sight_dir_);
     robot->setTimestamp(this->get_clock()->now());
     robot->start();
-    return std::move(robot);
+    return robot;
 }
 
 void Environment::publish_markers()
@@ -130,9 +131,24 @@ void Environment::publish_markers()
             self_to_robot_broadcast_->sendTransform(robotState.center_transform);
             once = true;
         }
-        // for (auto& marker : robotState.markers)
-        // markers_to_pub.markers.push_back();
         robot_markers_pub_->publish(robotState.markers);
+
+        Armors armors_to_pub;
+        armors_to_pub.header.stamp = this->get_clock()->now();
+        armors_to_pub.header.frame_id = robotState.frame;
+        for (auto& armor : robotState.armors)
+        {
+            if (!armor.visual)
+                continue;
+            Armor armor_to_pub;
+            armor_to_pub.header.stamp = armors_to_pub.header.stamp;
+            armor_to_pub.header.frame_id = robotState.frame;
+            armor_to_pub.pose = armor.armor.pose;
+
+            armors_to_pub.armors.push_back(armor_to_pub);
+        }
+
+        armors_pub_->publish(armors_to_pub);
+        // RCLCPP_INFO_STREAM(get_logger(), "Armors published");
     }
-    // robot_markers_pub_->publish(markers_to_pub);
 }

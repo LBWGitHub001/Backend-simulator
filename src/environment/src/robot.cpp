@@ -23,9 +23,7 @@ Robot::Robot(const std::string& frame)
     initMarkers();
 }
 
-Robot::~Robot()
-{
-}
+Robot::~Robot()= default;
 
 void Robot::setSight(std::shared_ptr<DirVector> sight)
 {
@@ -72,7 +70,7 @@ void Robot::setR(float r)
     robot_state_.r = r;
 }
 
-void Robot::start()
+void Robot::start() const
 {
     assert(set_complete_ >= 6);
 }
@@ -98,6 +96,7 @@ robot::RobotMarkers Robot::getState(const rclcpp::Time& time)
         0, 0, 1;
 
     RobotMarkers robot_markers;
+    robot_markers.frame = frame_;
     robot_markers.center_transform = robot_state_.robot_center_;
     Eigen::Vector3d armor_vec;
     armor_vec << robot_state_.r, 0, 0;
