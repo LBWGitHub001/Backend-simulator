@@ -6,6 +6,8 @@
 #define NN_COMMON_H
 #include <torch/torch.h>
 
+#include "nn_common.h"
+
 namespace nn
 {
     struct TrainParam
@@ -18,17 +20,28 @@ namespace nn
         int time_step; /*!用多少数据来预测接下来的动作*/
     };
 
+    struct Label
+    {
+        double w;
+        double vx,vy,vz;
+        double r1,r2;
+    };
+
+
     struct DataSet
     {
         torch::Tensor data;
         torch::Tensor label;
     };
 
-    struct lazyDataSet
+
+    struct lazyDataSet__struct
     {
         std::vector<torch::Tensor> data;
-        std::vector<torch::Tensor> label;
+        std::vector<Label> labels;
         std::vector<double> predict_step;
     };
+    using lazyDataSet__id = std::map<int,lazyDataSet__struct>;
+    using lazyDataSet = std::map<std::string,lazyDataSet__id>;
 }
 #endif //NN_COMMON_H

@@ -9,6 +9,7 @@ Environment::Environment(): rclcpp::Node("Environment")
     RCLCPP_INFO(this->get_logger(), "EnvironmentNode is Started!");
     self_markers_pub_ = this->create_publisher<MarkerArray>("environment/self", 10);
     robot_markers_pub_ = this->create_publisher<MarkerArray>("environment/robot", 10);
+    next_robot_markers_pub_ = this->create_publisher<MarkerArray>("environment/next", 10);
     armors_pub_ = this->create_publisher<Armors>("environment/armors", 10);
 
     marker_timer_ = this->create_wall_timer(std::chrono::milliseconds(10),
@@ -32,7 +33,7 @@ void Environment::init()
     sight_dir_ = std::make_shared<Robot::DirVector>();
     *sight_dir_ << 1, 0, 0;
     initMarkers();
-    auto robot = initRobot(3.5, 0, 0, 1, 0, 0, 0, 2);
+    auto robot = initRobot("sentry",3.5, 0, 0, 1, 0, 0, 0, 2);
 
     robot_.push_back(std::move(robot));
 }
@@ -93,10 +94,12 @@ void Environment::initMarkers()
     sight.pose.orientation.w = 1.0;
 }
 
-std::unique_ptr<Robot> Environment::initRobot(float x, float y, float z, float r,
+std::unique_ptr<Robot> Environment::initRobot(const std::string& type,
+                                              float x, float y, float z, float r,
                                               float vx, float vy, float vz, float w)
 {
     auto robot = std::make_unique<Robot>("robot");
+    robot->setRobotType(type);
     robot->setCenter(x, y, z);
     robot->setR(r);
     robot->setVelocity(vx, vy, vz);
@@ -127,25 +130,48 @@ void Environment::publish_markers()
     for (auto& robot : robot_)
     {
         auto robotState = robot->getState(this->get_clock()->now());
+        auto nextRobotState = robot->getState(this->get_clock()->now() + rclcpp::Duration(5,0),false);
         if (!once)
         {
             self_to_robot_broadcast_->sendTransform(robotState.center_transform);
             once = true;
+            for (auto& armor_marker : nextRobotState.markers.markers)
+            {
+                armor_marker.pose.position.x += nextRobotState.center_transform.transform.translation.x;
+                armor_marker.pose.position.y += nextRobotState.center_transform.transform.translation.y;
+                armor_marker.pose.position.z += nextRobotState.center_transform.transform.translation.z;
+            }
+            for (auto& armor : nextRobotState.armors)
+            {
+                armor.armor.pose.position.x += nextRobotState.center_transform.transform.translation.x;
+                armor.armor.pose.position.y += nextRobotState.center_transform.transform.translation.y;
+                armor.armor.pose.position.z += nextRobotState.center_transform.transform.translation.z;
+            }
+            nextRobotState.center.pose.position.x += nextRobotState.center_transform.transform.translation.x;
+            nextRobotState.center.pose.position.y += nextRobotState.center_transform.transform.translation.y;
+            nextRobotState.center.pose.position.z += nextRobotState.center_transform.transform.translation.z;
         }
         robot_markers_pub_->publish(robotState.markers);
+        next_robot_markers_pub_->publish(nextRobotState.markers);
+
+
 
         Armors armors_to_pub;
         armors_to_pub.header.stamp = this->get_clock()->now();
         armors_to_pub.header.frame_id = robotState.frame;
-        for (auto& armor : robotState.armors)
+        armors_to_pub.type = robotState.type;
+        for (int i=0;i<robotState.armors.size();i++)
         {
+            auto& armor = robotState.armors[i];
             if (!armor.visual)
                 continue;
             Armor armor_to_pub;
             armor_to_pub.header.stamp = armors_to_pub.header.stamp;
             armor_to_pub.header.frame_id = robotState.frame;
+            armor_to_pub.type = robotState.type;
             armor_to_pub.pose = armor.armor.pose;
             armor_to_pub.id = armor.armor.id;
+            armor_to_pub.next_pose = nextRobotState.armors[i].armor.pose;
 
             armors_to_pub.armors.push_back(armor_to_pub);
         }

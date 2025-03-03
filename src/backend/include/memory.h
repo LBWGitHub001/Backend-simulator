@@ -8,6 +8,7 @@
 #include <torch/torch.h>
 #include <memory>
 #include <thread>
+#include <map>
 #include <interfaces/msg/armors.hpp>
 
 #include "nnTrain/nn_common.h"
@@ -17,29 +18,32 @@ class Memory
 {
   enum SelectState
   {
-    NotReady,
-    First,
-    Selecting,
-    Updating,
+    First,      /*!当前识别到的是该系列机器人的第一帧*/
+    Selecting,  /*!当前正在收集数据，当前帧和上一帧的机器人类型相同*/
+    Lost,       /*!目标丢失，当前帧和上一帧的类型不同，将自动转换为Uploading*/
+    Uploading,   /*!已经收集完成数据，准备上传*/
   };
 
 public:
   Memory(const nn::TrainParam& train_param);
   ~Memory();
 
+  void initBuff();
   void registerTrainer(std::unique_ptr<TrainBase> trainer);
-  void push(interfaces::msg::Armors armors);
+  void push(interfaces::msg::Armors armor,nn::Label label);
 
 private:
   // State
-  SelectState state_ = SelectState::NotReady;
+  SelectState state_;
   double start_time_;
+  std::string last_type_;
   nn::lazyDataSet input_buffer_;
+  std::map<std::string,int> type_count_;
 
   // Train
   nn::TrainParam config_;
   std::unique_ptr<TrainBase> trainer_{nullptr};
-  void update();
+  void upload(std::string type);
 };
 
 

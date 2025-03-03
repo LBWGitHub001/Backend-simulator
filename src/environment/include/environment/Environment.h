@@ -38,13 +38,15 @@ public:
 
     void init();
     void initMarkers();
-    std::unique_ptr<Robot> initRobot(float x, float y, float z,float r,
+    std::unique_ptr<Robot> initRobot(const std::string& type,
+                                     float x, float y, float z, float r,
                                      float vx, float vy, float vz, float w);
 
 private:
     //visual
     rclcpp::Publisher<MarkerArray>::SharedPtr self_markers_pub_;
     rclcpp::Publisher<MarkerArray>::SharedPtr robot_markers_pub_;
+    rclcpp::Publisher<MarkerArray>::SharedPtr next_robot_markers_pub_;
     rclcpp::TimerBase::SharedPtr marker_timer_;
     void publish_markers();
 

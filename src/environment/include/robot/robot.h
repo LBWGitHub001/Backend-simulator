@@ -30,6 +30,7 @@ struct Preset
     explicit Robot(const std::string& frame);
     ~Robot();
 
+    void setRobotType(const std::string& type);
     void setSight(std::shared_ptr<DirVector> sight);
     void setTimestamp(const rclcpp::Time& time);
     void setParent(const std::string& frame);
@@ -39,12 +40,13 @@ struct Preset
     void setR(float r);
     void start() const;
 
-    RobotMarkers getState(const rclcpp::Time& time);
+    RobotMarkers getState(const rclcpp::Time& time,bool iter = true);
 
 private:
     int set_complete_;
 
     std::string frame_;
+    std::string robot_type_;
     State robot_state_;
     Marker armor_standard_;
     std::shared_ptr<DirVector> sight_dir_;

@@ -29,6 +29,7 @@ namespace robot
   struct RobotMarkers
   {
     std::string frame;
+    std::string type;
     geometry_msgs::msg::TransformStamped center_transform;
     visualization_msgs::msg::MarkerArray markers;
     std::vector<Armor> armors;

@@ -25,6 +25,12 @@ Robot::Robot(const std::string& frame)
 
 Robot::~Robot()= default;
 
+void Robot::setRobotType(const std::string& type)
+{
+    robot_type_ = type;
+    set_complete_++;
+}
+
 void Robot::setSight(std::shared_ptr<DirVector> sight)
 {
     sight_dir_ = sight;
@@ -68,27 +74,36 @@ void Robot::setW(const float w)
 void Robot::setR(float r)
 {
     robot_state_.r = r;
+    set_complete_++;
 }
 
 void Robot::start() const
 {
-    assert(set_complete_ >= 6);
+    assert(set_complete_ >= 8);
 }
 
-robot::RobotMarkers Robot::getState(const rclcpp::Time& time)
+robot::RobotMarkers Robot::getState(const rclcpp::Time& time,bool iter)
 {
     auto dt = (time - robot_state_.robot_center_.header.stamp).seconds();
-    robot_state_.robot_center_.header.stamp = time;
-    robot_state_.robot_center_.transform.translation.x += dt * robot_state_.v_x;
-    robot_state_.robot_center_.transform.translation.y += dt * robot_state_.v_y;
-    robot_state_.robot_center_.transform.translation.z += dt * robot_state_.v_z;
+
+    geometry_msgs::msg::Transform new_pose;
+    new_pose.translation.x = robot_state_.robot_center_.transform.translation.x + dt * robot_state_.v_x;
+    new_pose.translation.y = robot_state_.robot_center_.transform.translation.y + dt * robot_state_.v_y;
+    new_pose.translation.z = robot_state_.robot_center_.transform.translation.z + dt * robot_state_.v_z;
 
     auto da = dt * robot_state_.w;
     Eigen::Matrix3d dR;
     dR << cos(da), sin(da), 0,
         -sin(da), cos(da), 0,
         0, 0, 1;
-    robot_state_.R = robot_state_.R * dR;
+    Eigen::Matrix3d r = robot_state_.R * dR;
+
+    if (iter)/*!更新参数*/
+    {
+        robot_state_.robot_center_.header.stamp = time;
+        robot_state_.robot_center_.transform.translation = new_pose.translation;
+        robot_state_.R = r;
+    }
 
     Eigen::Matrix3d r90;
     r90 << 0, 1, 0,
@@ -96,12 +111,14 @@ robot::RobotMarkers Robot::getState(const rclcpp::Time& time)
         0, 0, 1;
 
     RobotMarkers robot_markers;
-    robot_markers.frame = frame_;
+    robot_markers.type = robot_type_;
+    robot_markers.frame = iter?frame_:"self";
     robot_markers.center_transform = robot_state_.robot_center_;
+    robot_markers.center_transform.transform = new_pose;
     Eigen::Vector3d armor_vec;
     armor_vec << robot_state_.r, 0, 0;
     bool is_once = false;
-    Eigen::Matrix3d r = robot_state_.R;
+
     for (auto i = 0; i < 4; i++)
     {
         r = r * r90;
@@ -113,6 +130,7 @@ robot::RobotMarkers Robot::getState(const rclcpp::Time& time)
             armor_marker = preset_.visible_armor;
         else
             armor_marker = preset_.invisible_armor;
+        armor_marker.header.frame_id = iter?frame_:"self";
         armor_marker.header.stamp = time;
 
         armor_marker.id = i;
@@ -137,6 +155,7 @@ robot::RobotMarkers Robot::getState(const rclcpp::Time& time)
         if (!is_once)
         {
             Marker center_sphere = preset_.center;
+            center_sphere.header.frame_id = iter?frame_:"self";
             center_sphere.header.stamp = time;
             robot_markers.markers.markers.push_back(center_sphere);
             is_once = true;
@@ -179,5 +198,3 @@ void Robot::initMarkers()
     preset_.center.color.a = 1.0;
     preset_.center.color.g = 1.0;
 }
-
-
