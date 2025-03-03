@@ -60,7 +60,7 @@ void BackEnd::initMemory()
     nn::TrainParam param;
     param.batch_size = 64;
     param.epochs = 4;
-    param.eposides = 3000;
+    param.episodes = 3000;
     param.stepstamps = 1000;
     param.lr = 0.003;
     memory_ = std::make_unique<Memory>(param);
@@ -110,7 +110,7 @@ void BackEnd::predict_timer_callback()
 
         esl_markers.markers.push_back(realArmor);
     }
-RCLCPP_INFO(this->get_logger(), "Num of visible Armor is %d",esl_markers.markers.size());
+RCLCPP_INFO(this->get_logger(), "Num of visible Armor is %lu",esl_markers.markers.size());
     esl_markers_pub_->publish(esl_markers);
 }
 
