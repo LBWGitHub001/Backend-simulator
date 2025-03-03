@@ -4,11 +4,21 @@
 
 #ifndef BACKEND_H
 #define BACKEND_H
+//std
+#include <Eigen/Dense>
 //ros
 #include <rclcpp/rclcpp.hpp>
+#include <visualization_msgs/msg/marker.hpp>
+#include <visualization_msgs/msg/marker_array.hpp>
+#include <geometry_msgs/msg/transform_stamped.hpp>
+#include <geometry_msgs/msg/transform.hpp>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
 //project
 #include <interfaces/msg/armors.hpp>
 #include <interfaces/msg/armor.hpp>
+#include "backend_common.h"
+#include "memory.h"
 
 class BackEnd : public rclcpp::Node
 {
@@ -16,10 +26,16 @@ public:
 
     using Armor = interfaces::msg::Armor;
     using Armors = interfaces::msg::Armors;
+    using TransformStamp = geometry_msgs::msg::TransformStamped;
+    using Marker = visualization_msgs::msg::Marker;
+    using MarkerArray = visualization_msgs::msg::MarkerArray;
 
     BackEnd();
     ~BackEnd();
 
+    void init();
+    void initMarkers();
+    void initMemory();
 private:
     //sub to Armors
     rclcpp::Subscription<Armors>::SharedPtr armors_sub_;
@@ -29,6 +45,15 @@ private:
     //predict
     rclcpp::TimerBase::SharedPtr predict_timer_;
     void predict_timer_callback();
+
+    //visual
+    std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
+    std::unique_ptr<tf2_ros::TransformListener> self_listener_;
+    backend::Preset preset_;
+    rclcpp::Publisher<MarkerArray>::SharedPtr esl_markers_pub_;
+
+    //data for NN
+    std::unique_ptr<Memory> memory_{nullptr};
 };
 
 

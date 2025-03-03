@@ -17,6 +17,7 @@ endif()
 
 # find dependencies
 find_package(ament_cmake_auto REQUIRED)
+include(/home/lbw/Apps/libtorch/share/cmake/Torch/TorchConfig.cmake)
 
 ament_auto_find_build_dependencies()
 
@@ -37,8 +38,11 @@ if(BUILD_TESTING)
 endif()
 
 include_directories(include)
-
+ament_auto_add_library(nnTrain SHARED DIRECTORY src/nnTrain)
 ament_auto_add_executable(${PROJECT_NAME}_node DIRECTORY src)
+
+target_link_libraries(nnTrain ${TORCH_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_node nnTrain)
 
 install(TARGETS
         ${PROJECT_NAME}_node

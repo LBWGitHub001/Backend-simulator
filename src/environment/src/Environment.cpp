@@ -6,6 +6,7 @@
 
 Environment::Environment(): rclcpp::Node("Environment")
 {
+    RCLCPP_INFO(this->get_logger(), "EnvironmentNode is Started!");
     self_markers_pub_ = this->create_publisher<MarkerArray>("environment/self", 10);
     robot_markers_pub_ = this->create_publisher<MarkerArray>("environment/robot", 10);
     armors_pub_ = this->create_publisher<Armors>("environment/armors", 10);
@@ -144,6 +145,7 @@ void Environment::publish_markers()
             armor_to_pub.header.stamp = armors_to_pub.header.stamp;
             armor_to_pub.header.frame_id = robotState.frame;
             armor_to_pub.pose = armor.armor.pose;
+            armor_to_pub.id = armor.armor.id;
 
             armors_to_pub.armors.push_back(armor_to_pub);
         }

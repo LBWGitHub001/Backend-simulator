@@ -18,6 +18,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
         "msg/KalmanPredict.msg"
         "msg/Direction.msg"
         "msg/SaveData.msg"
+        "msg/Train.msg"
         "srv/Kalman1.srv"
         "srv/UpdateWriter.srv"
         DEPENDENCIES

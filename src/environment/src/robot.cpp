@@ -128,7 +128,10 @@ robot::RobotMarkers Robot::getState(const rclcpp::Time& time)
         robot_markers.markers.markers.push_back(armor_marker);
         robot::Armor armor;
         armor.armor = armor_marker;
-        armor.visual = true;
+        if (dot < -0.5)
+            armor.visual = true;
+        else
+            armor.visual = false;
         robot_markers.armors.push_back(armor);
 
         if (!is_once)

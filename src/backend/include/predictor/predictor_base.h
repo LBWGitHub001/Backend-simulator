@@ -11,8 +11,8 @@ class PredictorBase {
 public:
     PredictorBase();
     virtual ~PredictorBase();
-    virtual void reset() = 0;
-    virtual void predict() = 0;
+    virtual void reset(Eigen::MatrixXd state) = 0;
+    virtual void predict(Eigen::MatrixXd state,double dt) = 0;
   private:
 
 };
