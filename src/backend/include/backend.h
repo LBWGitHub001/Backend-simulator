@@ -18,6 +18,7 @@
 #include <interfaces/msg/armors.hpp>
 #include <interfaces/msg/armor.hpp>
 #include "backend_common.h"
+#include "nnTrain/nn_MP.h"
 #include "nnTrain/memory.h"
 
 class BackEnd : public rclcpp::Node

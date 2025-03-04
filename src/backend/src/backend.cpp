@@ -64,7 +64,17 @@ void BackEnd::initMemory()
     param.stepstamps = 1000;
     param.lr = 0.003;
     param.time_step = 10;
+
+    // 声明网络
     memory_ = std::make_unique<Memory>(param);
+    std::unique_ptr<MPTrainer> trainer =std::make_unique<MPTrainer>(param);
+    std::unique_ptr<nn_MP> net = std::make_unique<nn_MP>(param.time_step);
+    std::unique_ptr<torch::nn::MSELoss> mse_loss = std::make_unique<torch::nn::MSELoss>();
+    std::unique_ptr<torch::optim::Adam> optimizer =
+        std::make_unique<torch::optim::Adam>(net->parameters(),param.lr);
+    trainer->setNet(std::move(net));
+    trainer->setLossFunction(std::move(mse_loss));
+    memory_->registerTrainer(std::move(trainer));
 }
 
 void BackEnd::armors_callback(const Armors::SharedPtr msg)

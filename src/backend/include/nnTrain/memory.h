@@ -13,6 +13,7 @@
 
 #include "nnTrain/nn_common.h"
 #include "nnTrain/train_base.h"
+#include "nnTrain/MPTrainer.h"
 #include "interfaces/msg/label.hpp"
 
 class Memory
@@ -29,8 +30,9 @@ public:
   Memory(const nn::TrainParam& train_param);
   ~Memory();
 
+  void setNet(std::unique_ptr<torch::nn::Module> net);
   void initBuff();
-  void registerTrainer(std::unique_ptr<TrainBase> trainer);
+  void registerTrainer(std::unique_ptr<MPTrainer> trainer);
   void push(interfaces::msg::Armors armors);
 
 private:
@@ -43,8 +45,8 @@ private:
 
   // Train
   nn::TrainParam config_;
-  std::unique_ptr<TrainBase> trainer_{nullptr};
   void upload(std::string type);
+  std::unique_ptr<MPTrainer> trainer_{nullptr};
 };
 
 

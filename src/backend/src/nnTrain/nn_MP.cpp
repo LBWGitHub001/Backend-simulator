@@ -28,3 +28,5 @@ torch::Tensor nn_MP::forward(torch::Tensor input, torch::Tensor dt)
     x = torch::relu(linear3->forward(x));
     return x;
 }
+
+

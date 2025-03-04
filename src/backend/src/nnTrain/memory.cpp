@@ -36,7 +36,7 @@ void Memory::initBuff()
     input_buffer_["base"] = nn::lazyDataSet__id();
 }
 
-void Memory::registerTrainer(std::unique_ptr<TrainBase> trainer)
+void Memory::registerTrainer(std::unique_ptr<MPTrainer> trainer)
 {
     trainer_ = std::move(trainer);
 }
@@ -102,7 +102,7 @@ void Memory::push(interfaces::msg::Armors armors)
 void Memory::upload(std::string type)
 {
     std::cout << "Uploading " << type << " ..." << std::endl;
-    auto start_time = std::chrono::system_clock::now();
+    auto start_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     std::vector<nn::DataSet> datasets;
     auto buffer = input_buffer_[type];
     for (auto buff_pre_id : buffer)
@@ -132,11 +132,11 @@ void Memory::upload(std::string type)
             ++start, ++end, ++predict_step_index, ++label_index;
         }
     }
-    auto end_time = std::chrono::system_clock::now();
-    auto duration = end_time - start_time;
-    std::cout << "It cost " << duration.count() << " ms" << std::endl;
+    auto end_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    auto duration =  end_time - start_time;
+    std::cout << "It cost " << duration << " ms" << std::endl;
     //TODO 传输数据
-
+    trainer_->upload(datasets);
 
     state_ = First;
 }

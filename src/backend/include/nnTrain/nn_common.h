@@ -5,7 +5,7 @@
 #ifndef NN_COMMON_H
 #define NN_COMMON_H
 #include <torch/torch.h>
-
+#include <interfaces/msg/label.hpp>
 #include "nn_common.h"
 
 namespace nn
@@ -18,6 +18,7 @@ namespace nn
         int batch_size; /*!训练批次*/
         double lr; /*!学习率*/
         int time_step; /*!用多少数据来预测接下来的动作*/
+        double train_rate;/*!训练集在所有数据中的占比*/
     };
 
     struct Label
