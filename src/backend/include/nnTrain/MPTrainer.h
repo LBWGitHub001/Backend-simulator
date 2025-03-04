@@ -10,7 +10,6 @@
 #include <thread>
 #include "nnTrain/nn_common.h"
 #include "nnTrain/nn_MP.h"
-#include "nnTrain/train_base.h"
 
 
 class MPTrainer
@@ -18,11 +17,28 @@ class MPTrainer
 public:
     struct DataPair
     {
-        std::unique_ptr<torch::data::StatelessDataLoader<MP::DataSet,int>> train_loader{nullptr};
-        std::unique_ptr<torch::data::StatelessDataLoader<MP::DataSet,int>> val_loader{nullptr};
+        std::unique_ptr<torch::data::StatelessDataLoader<MP::DataSet, torch::data::samplers::RandomSampler>>
+        train_loader{nullptr};
+        std::unique_ptr<torch::data::StatelessDataLoader<MP::DataSet, torch::data::samplers::SequentialSampler>>
+        val_loader{nullptr};
+        ~DataPair() = default;
+        DataPair() = default;
+
+        DataPair(DataPair&& other) noexcept
+        {
+            train_loader = std::move(other.train_loader);
+            val_loader = std::move(other.val_loader);
+        }
+        DataPair& operator=(DataPair&& other) noexcept
+        {
+            train_loader = std::move(other.train_loader);
+            val_loader = std::move(other.val_loader);
+            return *this;
+        }
     };
+
 public:
-    MPTrainer(const nn::TrainParam& train_param);
+    explicit MPTrainer(const nn::TrainParam& train_param);
     ~MPTrainer();
 
     void setNet(std::unique_ptr<nn_MP> net);
@@ -38,7 +54,7 @@ private:
     nn::TrainParam config_;
     //训练组件
     std::unique_ptr<nn_MP> net_{nullptr};
-    std::unique_ptr<torch::nn::MSELoss>loss_function_{nullptr};
+    std::unique_ptr<torch::nn::MSELoss> loss_function_{nullptr};
     std::unique_ptr<torch::optim::Adam> optimizer_{nullptr};
     bool stop_;
     bool busy_;

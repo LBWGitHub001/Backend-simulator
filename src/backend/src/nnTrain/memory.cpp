@@ -135,7 +135,7 @@ void Memory::upload(std::string type)
     auto end_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     auto duration =  end_time - start_time;
     std::cout << "It cost " << duration << " ms" << std::endl;
-    //TODO 传输数据
+
     trainer_->upload(datasets);
 
     state_ = First;
