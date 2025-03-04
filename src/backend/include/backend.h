@@ -20,6 +20,7 @@
 #include "backend_common.h"
 #include "nnTrain/nn_MP.h"
 #include "nnTrain/memory.h"
+#include "logger/logger.h"
 
 class BackEnd : public rclcpp::Node
 {

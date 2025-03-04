@@ -19,6 +19,10 @@ namespace nn
         double lr; /*!学习率*/
         int time_step; /*!用多少数据来预测接下来的动作*/
         double train_rate;/*!训练集在所有数据中的占比*/
+        int input_state;/*!输入的状态量个数*/
+        int output_state;/*!输出的状态量个数*/
+        int input_size;/*!输入模型的大小*/
+        int output_size;
     };
 
     struct Label
@@ -57,5 +61,31 @@ namespace nn
         label_.r2 = label.r2;
         return label_;
     }
+
+    class TensorShape
+    {
+        public:
+        TensorShape(torch::Tensor& tensor)
+        {
+            auto tshape = tensor.sizes();
+            for (auto i: tshape)
+            {
+                shape.push_back(i);
+            }
+        }
+        std::string getString()
+        {
+            std::string ss;
+            ss+="[";
+            for (auto& item : shape)
+            {
+                ss+=std::to_string(item);
+                ss+=",";
+            }
+            ss += "]";
+            return ss;
+        }
+        std::vector<long> shape;
+    };
 }
 #endif //NN_COMMON_H

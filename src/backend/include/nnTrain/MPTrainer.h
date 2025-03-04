@@ -8,6 +8,7 @@
 #include <memory>
 #include <queue>
 #include <thread>
+#include "logger/logger.h"
 #include "nnTrain/nn_common.h"
 #include "nnTrain/nn_MP.h"
 
@@ -21,7 +22,14 @@ public:
         train_loader{nullptr};
         std::unique_ptr<torch::data::StatelessDataLoader<MP::DataSet, torch::data::samplers::SequentialSampler>>
         val_loader{nullptr};
-        ~DataPair() = default;
+        ~DataPair()
+        {
+            if (train_loader != nullptr)
+            {
+                train_loader.reset();
+                val_loader.reset();
+            }
+        }
         DataPair() = default;
 
         DataPair(DataPair&& other) noexcept
@@ -40,18 +48,18 @@ public:
 public:
     explicit MPTrainer(const nn::TrainParam& train_param);
     ~MPTrainer();
+    void checkGPU();
 
     void setNet(std::unique_ptr<nn_MP> net);
     void setLossFunction(std::unique_ptr<torch::nn::MSELoss> lossFunction);
     void setOptimizer(std::unique_ptr<torch::optim::Adam> optimizer);
 
-    void startTrain();
-    void train();
     void upload(std::vector<nn::DataSet>& data_sets);
 
 private:
     //训练配置
     nn::TrainParam config_;
+    c10::DeviceType device_;
     //训练组件
     std::unique_ptr<nn_MP> net_{nullptr};
     std::unique_ptr<torch::nn::MSELoss> loss_function_{nullptr};
@@ -59,6 +67,8 @@ private:
     bool stop_;
     bool busy_;
     void train_loop();
+    void train();
+    double aEpoch(std::vector<torch::data::Example<>>& batch,bool train = true);
     std::unique_ptr<std::thread> train_thread_{nullptr};
 
     //训练数据管理

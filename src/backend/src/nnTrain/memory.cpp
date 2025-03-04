@@ -51,21 +51,20 @@ void Memory::push(interfaces::msg::Armors armors)
     double timestamp = armors.header.stamp.nanosec / 1000.0;
     if (armors.type != last_type_)
     {
-        std::cout << "Change to Lost" << std::endl;
+        // std::cout << "Change to Lost" << std::endl;
         state_ = Lost;
         std::thread Upload(&Memory::upload, this, last_type_);
         Upload.detach();
-        std::cout << "Change to First" << std::endl;
+        // std::cout << "Change to First" << std::endl;
         state_ = First;
     }
     while (state_ == Uploading)
     {
-
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
     if (state_ == First)
     {
-        std::cout << "Change to Selecting" << std::endl;
+        // LOG_DEBUG("Selecting...\t");
         start_time_ = timestamp;
         last_type_ = armors.type;
         type_count_[last_type_] = 0;
@@ -86,13 +85,13 @@ void Memory::push(interfaces::msg::Armors armors)
         dataFrame.push_back(armor.pose.orientation.w);
         buffer[armor.id].predict_step.push_back(armor.predict_step);
         buffer[armor.id].data.push_back(torch::tensor(dataFrame));
-        buffer[armor.id].labels.push_back(nn::interface_to_nnType(armor.label) );
+        buffer[armor.id].labels.push_back(nn::interface_to_nnType(armor.label));
         type_count_[last_type_]++;
     }
 
     if (type_count_[last_type_] > config_.stepstamps)
     {
-        std::cout << "Change to Uploading" << std::endl;
+        // std::cout << "Change to Uploading" << std::endl;
         state_ = Uploading;
         std::thread Upload(&Memory::upload, this, last_type_);
         Upload.detach();
@@ -101,8 +100,11 @@ void Memory::push(interfaces::msg::Armors armors)
 
 void Memory::upload(std::string type)
 {
-    std::cout << "Uploading " << type << " ..." << std::endl;
-    auto start_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    if (type.empty())
+        return;
+    PUT_INFO("Uploading " << type << "...\t");
+    auto start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
     std::vector<nn::DataSet> datasets;
     auto buffer = input_buffer_[type];
     for (auto buff_pre_id : buffer)
@@ -117,7 +119,7 @@ void Memory::upload(std::string type)
         {
             std::vector<torch::Tensor> input_vec(start, end);
             double predict_step = buff_pre_id.second.predict_step.at(predict_step_index);
-            input_vec.push_back(torch::tensor({predict_step}));
+            //input_vec.push_back(torch::tensor({predict_step}));
             auto input_tr = torch::cat(input_vec);
             //std::cout << "input_tr: " << input_tr.sizes() << std::endl;
             ds.data = input_tr;
@@ -132,9 +134,14 @@ void Memory::upload(std::string type)
             ++start, ++end, ++predict_step_index, ++label_index;
         }
     }
-    auto end_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    auto duration =  end_time - start_time;
-    std::cout << "It cost " << duration << " ms" << std::endl;
+    auto end_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    auto duration = end_time - start_time;
+    PUT_INFO("Complete! It cost "<< duration <<" ms" << std::endl);
+    auto inputShape = nn::TensorShape(datasets[0].data);
+    auto outputShape = nn::TensorShape(datasets[0].label);
+    PUT_DEBUG("Input&Output Shapes: "<< inputShape.getString()<<
+        "\t"<<  outputShape.getString() << std::endl);
 
     trainer_->upload(datasets);
 

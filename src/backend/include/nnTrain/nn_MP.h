@@ -13,12 +13,13 @@ class nn_MP : public torch::nn::Module
 {
 public:
     nn_MP();
-    explicit nn_MP(int input_time_len);
+    explicit nn_MP(nn::TrainParam config);
     ~nn_MP() override;
 
-    torch::Tensor forward(torch::Tensor input, torch::Tensor dt);
+    torch::Tensor forward(torch::Tensor input);
 
 private:
+    nn::TrainParam config_;
     int input_time_len_;
     torch::nn::Linear linear1{nullptr};
     torch::nn::Linear linear2{nullptr};

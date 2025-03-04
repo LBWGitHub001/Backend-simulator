@@ -10,7 +10,7 @@
 #include <thread>
 #include <map>
 #include <interfaces/msg/armors.hpp>
-
+#include "logger/logger.h"
 #include "nnTrain/nn_common.h"
 #include "nnTrain/train_base.h"
 #include "nnTrain/MPTrainer.h"

@@ -59,21 +59,29 @@ void BackEnd::initMemory()
 {
     nn::TrainParam param;
     param.batch_size = 64;
-    param.epochs = 4;
+    param.epochs = 1;
     param.episodes = 3000;
     param.stepstamps = 1000;
     param.lr = 0.003;
     param.time_step = 10;
+    param.train_rate = 0.9;
+    param.input_state = 8;
+    param.output_state = 6;
+    param.input_size = 80;
+    param.output_size = 6;
 
     // 声明网络
     memory_ = std::make_unique<Memory>(param);
-    std::unique_ptr<MPTrainer> trainer =std::make_unique<MPTrainer>(param);
-    std::unique_ptr<nn_MP> net = std::make_unique<nn_MP>(param.time_step);
-    std::unique_ptr<torch::nn::MSELoss> mse_loss = std::make_unique<torch::nn::MSELoss>();
+    std::unique_ptr<MPTrainer> trainer = std::make_unique<MPTrainer>(param);
+    std::unique_ptr<nn_MP> net = std::make_unique<nn_MP>(param);
+    std::unique_ptr<torch::nn::MSELoss> mse_loss =
+        std::make_unique<torch::nn::MSELoss>(
+        torch::nn::MSELossOptions().reduction(torch::kMean));
     std::unique_ptr<torch::optim::Adam> optimizer =
-        std::make_unique<torch::optim::Adam>(net->parameters(),param.lr);
+        std::make_unique<torch::optim::Adam>(net->parameters(), param.lr);
     trainer->setNet(std::move(net));
     trainer->setLossFunction(std::move(mse_loss));
+    trainer->setOptimizer(std::move(optimizer));
     memory_->registerTrainer(std::move(trainer));
 }
 
@@ -122,7 +130,7 @@ void BackEnd::predict_timer_callback()
 
         esl_markers.markers.push_back(realArmor);
     }
-// RCLCPP_INFO(this->get_logger(), "Num of visible Armor is %lu",esl_markers.markers.size());
+    // RCLCPP_INFO(this->get_logger(), "Num of visible Armor is %lu",esl_markers.markers.size());
     esl_markers_pub_->publish(esl_markers);
 }
 
