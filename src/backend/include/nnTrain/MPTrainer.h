@@ -58,14 +58,14 @@ public:
 
 private:
     //训练配置
-    nn::TrainParam config_;
+    nn::TrainParam config_{};
     c10::DeviceType device_;
     //训练组件
     std::unique_ptr<nn_MP> net_{nullptr};
     std::unique_ptr<torch::nn::MSELoss> loss_function_{nullptr};
     std::unique_ptr<torch::optim::Adam> optimizer_{nullptr};
-    bool stop_;
-    bool busy_;
+    bool stop_{};
+    bool busy_{};
     void train_loop();
     void train();
     double aEpoch(std::vector<torch::data::Example<>>& batch,bool train = true);
@@ -73,6 +73,7 @@ private:
 
     //训练数据管理
     std::queue<DataPair> dataset_queue_;
+
 };
 
 

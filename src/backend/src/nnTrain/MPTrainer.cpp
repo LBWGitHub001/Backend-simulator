@@ -82,6 +82,7 @@ void MPTrainer::setOptimizer(std::unique_ptr<torch::optim::Adam> optimizer)
         optimizer_ = std::move(optimizer);
 }
 
+
 void MPTrainer::train()
 {
     if (dataset_queue_.empty())
@@ -92,7 +93,6 @@ void MPTrainer::train()
     DataPair&& dp = std::move(dataset_queue_.front());
     for (int epoch = 0; epoch < config_.epochs; epoch++)
     {
-        //TODO 完成训练流程
         double total_loss = 0.0;
         int batch_count = 0;
         for (auto& batch : *dp.train_loader)

@@ -69,6 +69,7 @@ void BackEnd::initMemory()
     param.output_state = 6;
     param.input_size = 80;
     param.output_size = 6;
+    param.save_path = "/home/lbw/RM2025/Backend-simulator/src/backend/outputModels";
 
     // 声明网络
     memory_ = std::make_unique<Memory>(param);

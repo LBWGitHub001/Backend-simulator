@@ -22,7 +22,8 @@ namespace nn
         int input_state;/*!输入的状态量个数*/
         int output_state;/*!输出的状态量个数*/
         int input_size;/*!输入模型的大小*/
-        int output_size;
+        int output_size;/*!输出模型的大小*/
+        std::string save_path;/*!模型保存位置*/
     };
 
     struct Label
