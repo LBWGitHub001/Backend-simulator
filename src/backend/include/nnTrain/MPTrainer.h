@@ -11,6 +11,7 @@
 #include "logger/logger.h"
 #include "nnTrain/nn_common.h"
 #include "nnTrain/nn_MP.h"
+#include "nnTrain/writer.h"
 
 
 class MPTrainer
@@ -53,6 +54,7 @@ public:
     void setNet(std::unique_ptr<nn_MP> net);
     void setLossFunction(std::unique_ptr<torch::nn::MSELoss> lossFunction);
     void setOptimizer(std::unique_ptr<torch::optim::Adam> optimizer);
+    void setWriter(const std::string& save_path_);
 
     void upload(std::vector<nn::DataSet>& data_sets);
 
@@ -73,6 +75,7 @@ private:
 
     //训练数据管理
     std::queue<DataPair> dataset_queue_;
+    std::unique_ptr<Writer> writer_{nullptr};
 
 };
 

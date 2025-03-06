@@ -11,6 +11,9 @@ BackEnd::BackEnd(): rclcpp::Node("backend")
 
     armors_sub_ = this->create_subscription<Armors>("environment/armors", 10,
                                                     std::bind(&BackEnd::armors_callback, this, std::placeholders::_1));
+    change_state_sub_ = this->create_subscription<String>("environment/change_state", 10,
+        std::bind(&BackEnd::change_state_callback, this, std::placeholders::_1));
+
     predict_timer_ = this->create_wall_timer(std::chrono::milliseconds(10),
                                              std::bind(&BackEnd::predict_timer_callback, this));
 
@@ -59,9 +62,9 @@ void BackEnd::initMemory()
 {
     nn::TrainParam param;
     param.batch_size = 64;
-    param.epochs = 1;
+    param.epochs = 2;
     param.episodes = 3000;
-    param.stepstamps = 1000;
+    param.stepstamps = 200;
     param.lr = 0.003;
     param.time_step = 10;
     param.train_rate = 0.9;
@@ -83,6 +86,8 @@ void BackEnd::initMemory()
     trainer->setNet(std::move(net));
     trainer->setLossFunction(std::move(mse_loss));
     trainer->setOptimizer(std::move(optimizer));
+    trainer->setWriter("/home/lbw/RM2025/Backend-simulator/src/backend/outputModels");
+
     memory_->registerTrainer(std::move(trainer));
 }
 
@@ -90,6 +95,12 @@ void BackEnd::armors_callback(const Armors::SharedPtr msg)
 {
     armors_ = *msg;
     memory_->push(armors_);
+}
+
+void BackEnd::change_state_callback(const String::ConstSharedPtr msg)
+{
+    PUT_DEBUG("I heared: [" << msg->data << "]\n");
+    memory_->forceUpload();
 }
 
 void BackEnd::predict_timer_callback()

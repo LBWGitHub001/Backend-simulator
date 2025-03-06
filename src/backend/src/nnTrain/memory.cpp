@@ -14,6 +14,7 @@ Memory::~Memory()
 {
 }
 
+
 void Memory::initBuff()
 {
     /*! type:
@@ -98,6 +99,15 @@ void Memory::push(interfaces::msg::Armors armors)
     }
 }
 
+
+void Memory::forceUpload()
+{
+    state_ = Uploading;
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::thread Upload(&Memory::upload, this, last_type_);
+    Upload.detach();
+}
+
 void Memory::upload(std::string type)
 {
     if (type.empty())
@@ -133,6 +143,9 @@ void Memory::upload(std::string type)
             datasets.push_back(ds);
             ++start, ++end, ++predict_step_index, ++label_index;
         }
+        buff_pre_id.second.data.clear();
+        buff_pre_id.second.labels.clear();
+        type_count_[type] = 0;
     }
     auto end_time = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()).count();
@@ -141,7 +154,7 @@ void Memory::upload(std::string type)
     auto inputShape = nn::TensorShape(datasets[0].data);
     auto outputShape = nn::TensorShape(datasets[0].label);
     PUT_DEBUG("Input&Output Shapes: "<< inputShape.getString()<<
-        "\t"<<  outputShape.getString() << std::endl);
+        "\t"<< outputShape.getString() << std::endl);
 
     trainer_->upload(datasets);
 

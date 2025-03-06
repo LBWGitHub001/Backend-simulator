@@ -13,9 +13,11 @@ nn_MP::nn_MP(nn::TrainParam config)
 {
     config_ = config;
     input_time_len_ = config_.time_step;
-    linear1 = register_module("linear1", torch::nn::Linear(config_.input_size, 60));
-    linear2 = register_module("linear2", torch::nn::Linear(60, 30));
-    linear3 = register_module("linear3", torch::nn::Linear(30, config_.output_size));
+    linear1 = register_module("linear1", torch::nn::Linear(config_.input_size, 120));
+    linear2 = register_module("linear2", torch::nn::Linear(120, 50));
+    linear3 = register_module("linear3", torch::nn::Linear(50,30));
+    linear4 = register_module("linear4", torch::nn::Linear(30, 15));
+    linear5 = register_module("linear5", torch::nn::Linear(15, config_.output_size));
 }
 
 nn_MP::~nn_MP() = default;
@@ -26,6 +28,8 @@ torch::Tensor nn_MP::forward(torch::Tensor input)
     x = torch::relu(linear1->forward(x));
     x = torch::relu(linear2->forward(x));
     x = torch::relu(linear3->forward(x));
+    x = torch::relu(linear4->forward(x));
+    x = torch::relu(linear5->forward(x));
     return x;
 }
 

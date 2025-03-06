@@ -5,11 +5,13 @@
 #ifndef ENVIRONMENT_H
 #define ENVIRONMENT_H
 //ros
+#include <random>
 #include <rclcpp/rclcpp.hpp>
 #include <visualization_msgs/msg/marker.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
 #include <geometry_msgs/msg/transform.hpp>
 #include <geometry_msgs/msg/transform_stamped.hpp>
+#include <std_msgs/msg/string.hpp>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/transform_broadcaster.h>
@@ -35,7 +37,7 @@ public:
 
 
     Environment();
-    ~Environment();
+    ~Environment() override;
 
     void init();
     void initMarkers();
@@ -58,7 +60,7 @@ private:
     std::unique_ptr<tf2_ros::TransformBroadcaster> self_to_robot_broadcast_{nullptr};
 
     //Site
-    SiteParam site_param_;
+    SiteParam site_param_{};
     VisualElements visual_elements_;
 
     //state
@@ -68,6 +70,11 @@ private:
 
     //pub
     rclcpp::Publisher<Armors>::SharedPtr armors_pub_;
+
+    //robot state change
+    rclcpp::TimerBase::SharedPtr trans_timer_;
+    void change_state();
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr change_state_pub_;
 };
 
 

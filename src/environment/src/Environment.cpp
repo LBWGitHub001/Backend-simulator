@@ -11,9 +11,12 @@ Environment::Environment(): rclcpp::Node("Environment")
     robot_markers_pub_ = this->create_publisher<MarkerArray>("environment/robot", 10);
     next_robot_markers_pub_ = this->create_publisher<MarkerArray>("environment/next", 10);
     armors_pub_ = this->create_publisher<Armors>("environment/armors", 10);
+    change_state_pub_ = this->create_publisher<std_msgs::msg::String>("environment/change_state", 10);
 
-    marker_timer_ = this->create_wall_timer(std::chrono::milliseconds(10),
+    marker_timer_ = this->create_wall_timer(std::chrono::milliseconds(5),
                                             std::bind(&Environment::publish_markers, this));
+    trans_timer_ = this->create_wall_timer(std::chrono::milliseconds(1000),
+                                           std::bind(&Environment::change_state, this));
     odom_to_self_broadcast_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
     self_to_robot_broadcast_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
     tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
@@ -21,9 +24,7 @@ Environment::Environment(): rclcpp::Node("Environment")
     init();
 }
 
-Environment::~Environment()
-{
-}
+Environment::~Environment() = default;
 
 void Environment::init()
 {
@@ -33,7 +34,7 @@ void Environment::init()
     sight_dir_ = std::make_shared<Robot::DirVector>();
     *sight_dir_ << 1, 0, 0;
     initMarkers();
-    auto robot = initRobot("sentry",3.5, 0, 0, 1, 0, 0, 0, 2);
+    auto robot = initRobot("sentry", 3.5, 0, 0, 1, 0, 0, 0, 2);
 
     robot_.push_back(std::move(robot));
 }
@@ -130,7 +131,7 @@ void Environment::publish_markers()
     for (auto& robot : robot_)
     {
         auto robotState = robot->getState(this->get_clock()->now());
-        auto nextRobotState = robot->getState(this->get_clock()->now() + rclcpp::Duration(5,0),false);
+        auto nextRobotState = robot->getState(this->get_clock()->now() + rclcpp::Duration(5, 0), false);
         if (!once)
         {
             self_to_robot_broadcast_->sendTransform(robotState.center_transform);
@@ -155,12 +156,11 @@ void Environment::publish_markers()
         next_robot_markers_pub_->publish(nextRobotState.markers);
 
 
-
         Armors armors_to_pub;
         armors_to_pub.header.stamp = this->get_clock()->now();
         armors_to_pub.header.frame_id = robotState.frame;
         armors_to_pub.type = robotState.type;
-        for (int i=0;i<robotState.armors.size();i++)
+        for (int i = 0; i < robotState.armors.size(); i++)
         {
             auto& armor = robotState.armors[i];
             if (!armor.visual)
@@ -180,4 +180,38 @@ void Environment::publish_markers()
         armors_pub_->publish(armors_to_pub);
         // RCLCPP_INFO_STREAM(get_logger(), "Armors published");
     }
+}
+
+void Environment::change_state()
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> dist(-1000, +1000);
+    for (const auto& robot : robot_)
+    {
+        double x = dist(gen) / 100.0;
+        double y = dist(gen) / 100.0;
+        double z = dist(gen) / 100.0;
+        double vx = dist(gen) / 100.0;
+        double vy = dist(gen) / 100.0;
+        double vz = dist(gen) / 100.0;
+        double w = dist(gen) / 100.0;
+        double r = abs(dist(gen) / 100.0) + 3;
+        robot->setCenter(x, y, z);
+        robot->setR(r);
+        robot->setVelocity(vx, vy, vz);
+        robot->setW(w);
+        std::cout << "x： " << x << std::endl;
+        std::cout << "y: " << y << std::endl;
+        std::cout << "z: " << z << std::endl;
+        std::cout << "vx: " << vx << std::endl;
+        std::cout << "vy: " << vy << std::endl;
+        std::cout << "vz: " << vz << std::endl;
+        std::cout << "w: " << w << std::endl;
+        std::cout << "r: " << r << std::endl;
+        RCLCPP_INFO(this->get_logger(), "Robot State Change");
+    }
+    std_msgs::msg::String msg;
+    msg.data = "I change State, Please Upload Data";
+    change_state_pub_->publish(msg);
 }

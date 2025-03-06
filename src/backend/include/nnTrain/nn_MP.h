@@ -24,6 +24,8 @@ private:
     torch::nn::Linear linear1{nullptr};
     torch::nn::Linear linear2{nullptr};
     torch::nn::Linear linear3{nullptr};
+    torch::nn::Linear linear4{nullptr};
+    torch::nn::Linear linear5{nullptr};
 };
 
 namespace MP

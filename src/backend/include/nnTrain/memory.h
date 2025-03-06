@@ -34,6 +34,7 @@ public:
   void initBuff();
   void registerTrainer(std::unique_ptr<MPTrainer> trainer);
   void push(interfaces::msg::Armors armors);
+  void forceUpload();
 
 private:
   // State

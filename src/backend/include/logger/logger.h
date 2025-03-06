@@ -12,13 +12,13 @@
 #define LOG_ERROR(...) Logger::Log(LogLevel::ERROR, __FILE__, __LINE__, __VA_ARGS__)
 #define LOG_FATAL(...) Logger::Log(LogLevel::FATAL, __FILE__, __LINE__, __VA_ARGS__)
 
-#define PUT_DEBUG(INPUT) LOG(LogLevel::DEBUG, INPUT)
-#define PUT_INFO(INPUT) LOG(LogLevel::INFO,  INPUT)
-#define PUT_WARN(INPUT) LOG(LogLevel::WARN,  INPUT)
-#define PUT_ERROR(INPUT) LOG(LogLevel::ERROR, INPUT)
-#define PUT_FATAL(INPUT) LOG(LogLevel::FATAL, INPUT)
+#define PUT_DEBUG(INPUT) LOG_API_MYSELF(LogLevel::DEBUG, INPUT)
+#define PUT_INFO(INPUT) LOG_API_MYSELF(LogLevel::INFO,  INPUT)
+#define PUT_WARN(INPUT) LOG_API_MYSELF(LogLevel::WARN,  INPUT)
+#define PUT_ERROR(INPUT) LOG_API_MYSELF(LogLevel::ERROR, INPUT)
+#define PUT_FATAL(INPUT) LOG_API_MYSELF(LogLevel::FATAL, INPUT)
 
-#define LOG(level,INPUT) \
+#define LOG_API_MYSELF(level,INPUT) \
     {\
 std::cerr << Logger::levelColors.at(level);\
 std::cerr << INPUT << Logger::RESET;\

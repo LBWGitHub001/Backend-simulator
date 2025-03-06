@@ -14,7 +14,7 @@ MPTrainer::MPTrainer(const nn::TrainParam& train_param)
 MPTrainer::~MPTrainer()
 {
     stop_ = true;
-    while (busy_){std::this_thread::sleep_for(std::chrono::seconds(1));}
+    while (busy_) { std::this_thread::sleep_for(std::chrono::seconds(1)); }
 }
 
 void MPTrainer::checkGPU()
@@ -82,6 +82,11 @@ void MPTrainer::setOptimizer(std::unique_ptr<torch::optim::Adam> optimizer)
         optimizer_ = std::move(optimizer);
 }
 
+void MPTrainer::setWriter(const std::string& save_path_)
+{
+    writer_ = std::make_unique<Writer>(save_path_);
+}
+
 
 void MPTrainer::train()
 {
@@ -95,9 +100,10 @@ void MPTrainer::train()
     {
         double total_loss = 0.0;
         int batch_count = 0;
+        *writer_ << "Train epoch: \n";
         for (auto& batch : *dp.train_loader)
         {
-            double loss= aEpoch(batch);
+            double loss = aEpoch(batch);
             total_loss += loss;
             batch_count++;
             // std::cout << "Loss: " << loss << std::endl;
@@ -106,6 +112,7 @@ void MPTrainer::train()
 
         total_loss = 0.0;
         batch_count = 0;
+        *writer_ << "Vaild epoch: \n";
         for (auto& batch : *dp.val_loader)
         {
             total_loss += aEpoch(batch, false);
@@ -113,7 +120,9 @@ void MPTrainer::train()
         }
         double val_loss_avg = total_loss / batch_count;
         PUT_WARN("Loss[train/val]: " << train_loss_avg << "/" << val_loss_avg << std::endl);
+        *writer_ << "Loss[train/val]: " << train_loss_avg << "/" << val_loss_avg << "\n";
     }
+    net_ = writer_->save(std::move(net_));
     dataset_queue_.pop();
 }
 
@@ -133,6 +142,7 @@ double MPTrainer::aEpoch(std::vector<torch::data::Example<>>& batch, bool train)
     auto y = ybatch.reshape({-1, config_.output_size}).to(device_);
     auto y_hat = net_->forward(x);
     auto loss = (*loss_function_)->forward(y, y_hat);
+    *writer_ << loss.item<double>() << "\n";
     if (train)
     {
         loss.backward();
